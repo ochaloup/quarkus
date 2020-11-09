@@ -14,6 +14,7 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 import javax.transaction.SystemException;
@@ -43,8 +44,6 @@ import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
 
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.InstanceHandle;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduled.ConcurrentExecution;
@@ -67,6 +66,9 @@ public class QuartzScheduler implements Scheduler {
 
     private final org.quartz.Scheduler scheduler;
     private final boolean enabled;
+
+    @Inject
+    private UserTransaction utx;
 
     @Produces
     @Singleton
@@ -92,10 +94,10 @@ public class QuartzScheduler implements Scheduler {
             Map<String, ScheduledInvoker> invokers = new HashMap<>();
             UserTransaction transaction = null;
 
-            try (InstanceHandle<UserTransaction> handle = Arc.container().instance(UserTransaction.class)) {
+            try {
                 boolean manageTx = quartzSupport.getBuildTimeConfig().storeType.isNonManagedTxJobStore();
-                if (manageTx && handle.isAvailable()) {
-                    transaction = handle.get();
+                if (manageTx && utx != null) {
+                    transaction = utx;
                 }
                 Properties props = getSchedulerConfigurationProperties(quartzSupport);
 
