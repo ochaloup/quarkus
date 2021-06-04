@@ -46,7 +46,17 @@ public class TransactionContext implements InjectableContext {
         if (contextState == null) {
             return;
         }
+        /*
+         * Arc.container().beanManager().getEvent()
+         * .select(Transaction.class, BeforeDestroyed.Literal.of(TransactionScoped.class)).fire(getCurrentTransaction());
+         * 
+         */
         contextState.destroy();
+
+        /*
+         * Arc.container().beanManager().getEvent()
+         * .select(Transaction.class, Destroyed.Literal.of(TransactionScoped.class)).fire(getCurrentTransaction());
+         */
     }
 
     @Override
